@@ -5,11 +5,15 @@ import Categorylist from "./componenets/pages/Categorylist";
 import Addcat from "./componenets/pages/Addcat";
 import { OpenRoutes } from "./routing/OpenRoutes";
 import { PrivateRoutes } from "./routing/PrivateRoutes";
-
+import AddColor from "./componenets/pages/Addcolor";
+import ColorList from "./componenets/pages/Colotlist";
+import BrandList from "./componenets/pages/Brandlist";
+import Addbrand from "./componenets/pages/Addbrand";
+import Addproduct from "./componenets/pages/Addproduct";
+import Productlist from "./componenets/pages/Productlist";
 function App() {
   return (
     <Routes>
-
       {/* Public Route */}
       <Route
         path="/"
@@ -32,6 +36,16 @@ function App() {
         <Route path="list-category" element={<Categorylist />} />
         <Route path="category" element={<Addcat />} />
         <Route path="category/:id" element={<Addcat />} />
+        <Route path="color" element={<AddColor />} />
+        <Route path="color/:id" element={<AddColor />} />
+        <Route path="list-color" element={<ColorList />} />
+        <Route path="list-brand" element={<BrandList />} />
+        <Route path="brand" element={<Addbrand />} />
+        <Route path="brand/:id" element={<Addbrand />} />
+        <Route path="product" element={<Addproduct />} />
+        <Route path="product/:id" element={<Addproduct />} />
+        <Route path="list-product" element={<Productlist />} />
+
       </Route>
 
       {/* 404 Page */}
