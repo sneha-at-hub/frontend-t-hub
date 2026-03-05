@@ -16,6 +16,9 @@ const AddProduct = () => {
   const [price, setPrice] = useState("");
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [subcategory, setsubcategory] = useState("");
+  const [subItem, setSubItem] = useState("");
   const [tags, setTags] = useState("");
   const [colors, setColors] = useState([]);
   const [quantity, setQuantity] = useState("");
@@ -25,6 +28,12 @@ const AddProduct = () => {
   const [categoriesList, setCategoriesList] = useState([]);
   const [colorsList, setColorsList] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  // Derived from selected category
+  const selectedCatData = categoriesList.find((c) => c._id === categoryId);
+  const subList = selectedCatData?.sub || [];
+  const selectedSubData = subList.find((s) => s.name === subcategory);
+  const itemList = selectedSubData?.items || [];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +63,9 @@ const AddProduct = () => {
           });
           const p = res.data;
           setTitle(p.title); setDescription(p.description); setPrice(p.price);
-          setBrand(p.brand); setCategory(p.category); setTags(p.tags);
+          setBrand(p.brand); setCategory(p.category); setCategoryId(p.categoryId || "");
+          setsubcategory(p.subcategory || ""); setSubItem(p.subItem || "");
+          setTags(p.tags);
           setColors(p.color || []); setQuantity(p.quantity);
           setImages(p.images?.map((img) => ({ url: img.url })) || []);
         } catch (err) {
@@ -66,6 +77,20 @@ const AddProduct = () => {
       fetchProduct();
     }
   }, [getProductId, token]);
+
+  const handleCategoryChange = (e) => {
+    const id = e.target.value;
+    const cat = categoriesList.find((c) => c._id === id);
+    setCategoryId(id);
+    setCategory(cat?.title || "");
+    setsubcategory("");
+    setSubItem("");
+  };
+
+  const handleSubChange = (e) => {
+    setsubcategory(e.target.value);
+    setSubItem("");
+  };
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -85,12 +110,23 @@ const AddProduct = () => {
       toast.error("Please fill in all required fields");
       return;
     }
+    if (!subcategory) {
+      toast.warn("Please select a subcategory.");
+      return;
+    }
+    if (itemList.length > 0 && !subItem) {
+      toast.warn("Please select an item within the subcategory.");
+      return;
+    }
     try {
       setLoading(true);
       const formData = new FormData();
       formData.append("title", title); formData.append("description", description);
       formData.append("price", price); formData.append("brand", brand);
-      formData.append("category", category); formData.append("tags", tags);
+      formData.append("category", category); formData.append("categoryId", categoryId);
+      formData.append("subcategory", subcategory);
+      if (subItem) formData.append("subItem", subItem);
+      formData.append("tags", tags);
       formData.append("quantity", quantity);
       formData.append("slug", title.toLowerCase().replace(/\s+/g, "-"));
       colors.forEach((c) => formData.append("color[]", c));
@@ -104,7 +140,8 @@ const AddProduct = () => {
         await axios.post("http://localhost:5000/api/product", formData, { headers });
         toast.success("Product added successfully!");
         setTitle(""); setDescription(""); setPrice(""); setBrand("");
-        setCategory(""); setTags(""); setColors([]); setQuantity(""); setImages([]);
+        setCategory(""); setCategoryId(""); setsubcategory(""); setSubItem("");
+        setTags(""); setColors([]); setQuantity(""); setImages([]);
       }
       navigate("/admin/list-product");
     } catch (err) {
@@ -118,7 +155,8 @@ const AddProduct = () => {
 
   const inputClass =
     "w-full px-3.5 py-2.5 text-sm text-gray-800 bg-white border border-gray-200 rounded-lg outline-none transition-all duration-150 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 placeholder-gray-400";
-
+  const disabledClass =
+    "w-full px-3.5 py-2.5 text-sm text-gray-400 bg-gray-50 border border-gray-100 rounded-lg outline-none cursor-not-allowed";
   const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5";
 
   return (
@@ -176,28 +214,12 @@ const AddProduct = () => {
             </div>
             <div className="px-6 py-5 space-y-4">
               <div>
-                <label className={labelClass}>
-                  Product Title <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Classic Leather Sneaker"
-                  className={inputClass}
-                />
+                <label className={labelClass}>Product Title <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Classic Leather Sneaker" className={inputClass} />
               </div>
               <div>
-                <label className={labelClass}>
-                  Description <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Describe the product — materials, features, sizing..."
-                  rows={4}
-                  className={`${inputClass} resize-none leading-relaxed`}
-                />
+                <label className={labelClass}>Description <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the product — materials, features, sizing..." rows={4} className={`${inputClass} resize-none leading-relaxed`} />
               </div>
             </div>
           </div>
@@ -218,38 +240,19 @@ const AddProduct = () => {
             <div className="px-6 py-5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>
-                    Price (USD) <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
-                  </label>
+                  <label className={labelClass}>Price (USD) <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">$</span>
-                    <input
-                      type="number"
-                      value={price}
-                      onChange={(e) => setPrice(e.target.value)}
-                      placeholder="0.00"
-                      min="0"
-                      step="0.01"
-                      className={`${inputClass} pl-8`}
-                    />
+                    <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" min="0" step="0.01" className={`${inputClass} pl-8`} />
                   </div>
                 </div>
                 <div>
-                  <label className={labelClass}>
-                    Stock Quantity <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
-                  </label>
+                  <label className={labelClass}>Stock Quantity <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
                   <div className="relative">
                     <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                     </svg>
-                    <input
-                      type="number"
-                      value={quantity}
-                      onChange={(e) => setQuantity(e.target.value)}
-                      placeholder="0"
-                      min="0"
-                      className={`${inputClass} pl-10`}
-                    />
+                    <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="0" min="0" className={`${inputClass} pl-10`} />
                   </div>
                 </div>
               </div>
@@ -266,21 +269,17 @@ const AddProduct = () => {
               </div>
               <div>
                 <h2 className="text-sm font-semibold text-gray-800">Categorization</h2>
-                <p className="text-xs text-gray-400">Brand, category, and tag</p>
+                <p className="text-xs text-gray-400">Brand, category, subcategory, and tag</p>
               </div>
             </div>
             <div className="px-6 py-5 space-y-4">
+
+              {/* Brand + Category */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>
-                    Brand <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
-                  </label>
+                  <label className={labelClass}>Brand <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
                   <div className="relative">
-                    <select
-                      value={brand}
-                      onChange={(e) => setBrand(e.target.value)}
-                      className={`${inputClass} appearance-none pr-9 cursor-pointer`}
-                    >
+                    <select value={brand} onChange={(e) => setBrand(e.target.value)} className={`${inputClass} appearance-none pr-9 cursor-pointer`}>
                       <option value="">Select brand</option>
                       {brandsList.map((b) => <option key={b._id} value={b.title}>{b.title}</option>)}
                     </select>
@@ -290,17 +289,11 @@ const AddProduct = () => {
                   </div>
                 </div>
                 <div>
-                  <label className={labelClass}>
-                    Category <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
-                  </label>
+                  <label className={labelClass}>Category <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
                   <div className="relative">
-                    <select
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      className={`${inputClass} appearance-none pr-9 cursor-pointer`}
-                    >
+                    <select value={categoryId} onChange={handleCategoryChange} className={`${inputClass} appearance-none pr-9 cursor-pointer`}>
                       <option value="">Select category</option>
-                      {categoriesList.map((c) => <option key={c._id} value={c.title}>{c.title}</option>)}
+                      {categoriesList.map((c) => <option key={c._id} value={c._id}>{c.title}</option>)}
                     </select>
                     <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -308,14 +301,91 @@ const AddProduct = () => {
                   </div>
                 </div>
               </div>
+
+              {/* subcategory + Item — cascading */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>
+                    subcategory <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
+                  </label>
+                  {categoryId && subList.length > 0 ? (
+                    <div className="relative">
+                      <select value={subcategory} onChange={handleSubChange} className={`${inputClass} appearance-none pr-9 cursor-pointer`}>
+                        <option value="">Select subcategory</option>
+                        {subList.map((s) => <option key={s._id} value={s.name}>{s.name}</option>)}
+                      </select>
+                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        type="text"
+                        disabled
+                        placeholder={categoryId ? "No subcategories available" : "Select a category first"}
+                        className={disabledClass}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className={labelClass}>Item</label>
+                  {subcategory && itemList.length > 0 ? (
+                    <div className="relative">
+                      <select value={subItem} onChange={(e) => setSubItem(e.target.value)} className={`${inputClass} appearance-none pr-9 cursor-pointer`}>
+                        <option value="">Select item</option>
+                        {itemList.map((item, i) => <option key={i} value={item}>{item}</option>)}
+                      </select>
+                      <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  ) : (
+                    <input
+                      type="text"
+                      disabled
+                      placeholder={subcategory ? "No items available" : "Select a subcategory first"}
+                      className={disabledClass}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {/* Breadcrumb trail */}
+              {(category || subcategory || subItem) && (
+                <div className="flex items-center gap-1.5 px-3 py-2 bg-violet-50 border border-violet-100 rounded-lg flex-wrap">
+                  <svg className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                  {category && <span className="text-xs font-semibold text-violet-600">{category}</span>}
+                  {subcategory && (
+                    <>
+                      <svg className="w-3 h-3 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      <span className="text-xs font-medium text-violet-500">{subcategory}</span>
+                    </>
+                  )}
+                  {subItem && (
+                    <>
+                      <svg className="w-3 h-3 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                      <span className="text-xs font-medium text-violet-400">{subItem}</span>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Tags */}
               <div>
-                <label className={labelClass}>
-                  Tag <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
-                </label>
+                <label className={labelClass}>Tag <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {[
                     { value: "featured", label: "Featured", icon: Star },
-                    { value: "popular", label: "Popular", icon: Flame},
+                    { value: "popular", label: "Popular", icon: Flame },
                     { value: "special", label: "Special", icon: Sparkles },
                   ].map((t) => (
                     <button
@@ -328,7 +398,7 @@ const AddProduct = () => {
                           : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-500"
                       }`}
                     >
-                     <t.icon size={16} /> {t.label}
+                      <t.icon size={16} /> {t.label}
                     </button>
                   ))}
                 </div>

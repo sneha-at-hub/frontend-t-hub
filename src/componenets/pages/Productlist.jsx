@@ -10,7 +10,7 @@ const ProductList = () => {
   const [deleteId, setDeleteId] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState({ brand: "", category: "", priceRange: "all" });
+  const [filters, setFilters] = useState({ brand: "", category: "", subcategory: "", priceRange: "all" });
   const [showFilters, setShowFilters] = useState(false);
 
   const token = localStorage.getItem("token");
@@ -43,14 +43,16 @@ const ProductList = () => {
     }
   };
 
-  const uniqueBrands = useMemo(() => [...new Set(products.map((p) => p.brand?.title || p.brand))], [products]);
-  const uniqueCategories = useMemo(() => [...new Set(products.map((p) => p.category?.title || p.category))], [products]);
+  const uniqueBrands = useMemo(() => [...new Set(products.map((p) => p.brand?.title || p.brand).filter(Boolean))], [products]);
+  const uniqueCategories = useMemo(() => [...new Set(products.map((p) => p.category?.title || p.category).filter(Boolean))], [products]);
+  const uniqueSubcategories = useMemo(() => [...new Set(products.map((p) => p.subcategory).filter(Boolean))], [products]);
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
       const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesBrand = !filters.brand || (product.brand?.title || product.brand) === filters.brand;
       const matchesCategory = !filters.category || (product.category?.title || product.category) === filters.category;
+      const matchesSubcategory = !filters.subcategory || product.subcategory === filters.subcategory;
       let matchesPrice = true;
       if (filters.priceRange !== "all") {
         const price = product.price;
@@ -59,14 +61,14 @@ const ProductList = () => {
         else if (filters.priceRange === "100-500") matchesPrice = price > 100 && price <= 500;
         else if (filters.priceRange === "500+") matchesPrice = price > 500;
       }
-      return matchesSearch && matchesBrand && matchesCategory && matchesPrice;
+      return matchesSearch && matchesBrand && matchesCategory && matchesSubcategory && matchesPrice;
     });
   }, [products, searchQuery, filters]);
 
-  const hasActiveFilters = filters.brand || filters.category || filters.priceRange !== "all";
+  const hasActiveFilters = filters.brand || filters.category || filters.subcategory || filters.priceRange !== "all";
 
   const clearFilters = () => {
-    setFilters({ brand: "", category: "", priceRange: "all" });
+    setFilters({ brand: "", category: "", subcategory: "", priceRange: "all" });
     setSearchQuery("");
   };
 
@@ -121,7 +123,6 @@ const ProductList = () => {
             </div>
 
             <div className="flex items-center gap-2">
-              {/* Filter toggle */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border transition-all duration-150 ${
@@ -134,12 +135,9 @@ const ProductList = () => {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
                 </svg>
                 Filters
-                {hasActiveFilters && (
-                  <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                )}
+                {hasActiveFilters && <span className="w-2 h-2 rounded-full bg-indigo-500"></span>}
               </button>
 
-              {/* Clear filters */}
               {(hasActiveFilters || searchQuery) && (
                 <button
                   onClick={clearFilters}
@@ -156,7 +154,7 @@ const ProductList = () => {
 
           {/* Filter Panel */}
           {showFilters && (
-            <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Brand</label>
                 <div className="relative">
@@ -175,6 +173,18 @@ const ProductList = () => {
                   <select value={filters.category} onChange={(e) => setFilters({ ...filters, category: e.target.value })} className={selectClass}>
                     <option value="">All Categories</option>
                     {uniqueCategories.map((c) => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">Subcategory</label>
+                <div className="relative">
+                  <select value={filters.subcategory} onChange={(e) => setFilters({ ...filters, subcategory: e.target.value })} className={selectClass}>
+                    <option value="">All Subcategories</option>
+                    {uniqueSubcategories.map((s) => <option key={s} value={s}>{s}</option>)}
                   </select>
                   <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
@@ -202,7 +212,6 @@ const ProductList = () => {
 
         {/* Table Card */}
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-
           {loading ? (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <svg className="w-8 h-8 animate-spin text-indigo-400" fill="none" viewBox="0 0 24 24">
@@ -237,8 +246,10 @@ const ProductList = () => {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-100">
-                    {["#", "Product", "Brand", "Category", "Colors", "Stock", "Price", "Images", "Actions"].map((h) => (
-                      <th key={h} className={`px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap ${h === "Actions" || h === "Colors" || h === "Images" ? "text-center" : h === "Price" ? "text-right" : "text-left"}`}>
+                    {["#", "Product", "Brand", "Category", "Subcategory", "Item", "Colors", "Stock", "Price", "Images", "Actions"].map((h) => (
+                      <th key={h} className={`px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap ${
+                        h === "Actions" || h === "Colors" || h === "Images" ? "text-center" : h === "Price" ? "text-right" : "text-left"
+                      }`}>
                         {h}
                       </th>
                     ))}
@@ -256,7 +267,7 @@ const ProductList = () => {
                       </td>
 
                       {/* Product */}
-                      <td className="px-5 py-4 whitespace-nowrap max-w-[180px]">
+                      <td className="px-5 py-4 whitespace-nowrap max-w-[160px]">
                         <span className="text-sm font-medium text-gray-800 truncate block">{p.title}</span>
                       </td>
 
@@ -272,6 +283,28 @@ const ProductList = () => {
                         <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-violet-50 text-xs font-medium text-violet-600">
                           {p.category?.title || p.category}
                         </span>
+                      </td>
+
+                      {/* Subcategory */}
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        {p.subcategory ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-indigo-50 text-xs font-medium text-indigo-600">
+                            {p.subcategory}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
+
+                      {/* Item */}
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        {p.subItem ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-sky-50 text-xs font-medium text-sky-600">
+                            {p.subItem}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
                       </td>
 
                       {/* Colors */}
@@ -310,12 +343,7 @@ const ProductList = () => {
                       <td className="px-5 py-4">
                         <div className="flex justify-center gap-1.5 flex-wrap">
                           {p.images?.slice(0, 3).map((img, i) => (
-                            <img
-                              key={i}
-                              src={img.url}
-                              alt="product"
-                              className="w-9 h-9 object-cover rounded-lg border border-gray-200 shadow-sm"
-                            />
+                            <img key={i} src={img.url} alt="product" className="w-9 h-9 object-cover rounded-lg border border-gray-200 shadow-sm" />
                           ))}
                           {p.images?.length > 3 && (
                             <div className="w-9 h-9 rounded-lg border border-gray-200 bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
@@ -333,14 +361,14 @@ const ProductList = () => {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors duration-150"
                           >
                             <BiEdit className="w-3.5 h-3.5" />
-                            Edit
+                      
                           </Link>
                           <button
                             onClick={() => { setDeleteId(p._id); setShowConfirm(true); }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-150"
                           >
                             <AiFillDelete className="w-3.5 h-3.5" />
-                            Delete
+                      
                           </button>
                         </div>
                       </td>

@@ -196,14 +196,14 @@ const ColorList = () => {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors duration-150"
                           >
                             <BiEdit className="w-3.5 h-3.5" />
-                            Edit
+                     
                           </Link>
                           <button
                             onClick={() => { setDeleteId(color._id); setShowModal(true); }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-150"
                           >
                             <AiFillDelete className="w-3.5 h-3.5" />
-                            Delete
+             
                           </button>
                         </div>
                       </td>
