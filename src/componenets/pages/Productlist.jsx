@@ -49,7 +49,8 @@ const ProductList = () => {
 
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product.sku && product.sku.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesBrand = !filters.brand || (product.brand?.title || product.brand) === filters.brand;
       const matchesCategory = !filters.category || (product.category?.title || product.category) === filters.category;
       const matchesSubcategory = !filters.subcategory || product.subcategory === filters.subcategory;
@@ -108,7 +109,7 @@ const ProductList = () => {
               </svg>
               <input
                 type="text"
-                placeholder="Search products..."
+                placeholder="Search by name or SKU..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-3.5 py-2 text-sm text-gray-800 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 placeholder-gray-400 transition-all duration-150"
@@ -246,9 +247,9 @@ const ProductList = () => {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-100">
-                    {["#", "Product", "Brand", "Category", "Subcategory", "Item", "Colors", "Stock", "Price", "Images", "Actions"].map((h) => (
+                    {["#", "Product", "SKU", "Brand", "Category", "Subcategory", "Item", "Colors", "Stock", "Min. Order", "Unit", "Weight", "Price", "Pricing Tiers", "Images", "Actions"].map((h) => (
                       <th key={h} className={`px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap ${
-                        h === "Actions" || h === "Colors" || h === "Images" ? "text-center" : h === "Price" ? "text-right" : "text-left"
+                        h === "Actions" || h === "Colors" || h === "Images" ? "text-center" : h === "Price" || h === "Min. Order" ? "text-right" : "text-left"
                       }`}>
                         {h}
                       </th>
@@ -269,6 +270,17 @@ const ProductList = () => {
                       {/* Product */}
                       <td className="px-5 py-4 whitespace-nowrap max-w-[160px]">
                         <span className="text-sm font-medium text-gray-800 truncate block">{p.title}</span>
+                      </td>
+
+                      {/* SKU */}
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        {p.sku ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-gray-100 text-xs font-mono font-medium text-gray-600">
+                            {p.sku}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
                       </td>
 
                       {/* Brand */}
@@ -334,9 +346,55 @@ const ProductList = () => {
                         </span>
                       </td>
 
+                      {/* Min. Order */}
+                      <td className="px-5 py-4 whitespace-nowrap text-right">
+                        {p.minOrderQty ? (
+                          <span className="text-xs font-semibold text-gray-700">{p.minOrderQty}</span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
+
+                      {/* Unit */}
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        {p.unit ? (
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-teal-50 text-xs font-medium text-teal-600">
+                            {p.unit}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
+
+                      {/* Weight */}
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        {p.weight ? (
+                          <span className="text-xs font-medium text-gray-600">{p.weight}</span>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
+                      </td>
+
                       {/* Price */}
                       <td className="px-5 py-4 whitespace-nowrap text-right">
                         <span className="text-sm font-semibold text-gray-800">${p.price}</span>
+                      </td>
+
+                      {/* Pricing Tiers */}
+                      <td className="px-5 py-4 whitespace-nowrap">
+                        {p.pricing?.length > 0 ? (
+                          <div className="flex flex-col gap-1">
+                            {p.pricing.map((tier, i) => (
+                              <span key={i} className="inline-flex items-center gap-1 text-xs text-gray-500">
+                                <span className="font-medium text-gray-700">≥{tier.minQty}</span>
+                                <span className="text-gray-300">→</span>
+                                <span className="font-semibold text-emerald-600">${tier.price}</span>
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-gray-300">—</span>
+                        )}
                       </td>
 
                       {/* Images */}
@@ -361,14 +419,12 @@ const ProductList = () => {
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors duration-150"
                           >
                             <BiEdit className="w-3.5 h-3.5" />
-                      
                           </Link>
                           <button
                             onClick={() => { setDeleteId(p._id); setShowConfirm(true); }}
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-150"
                           >
                             <AiFillDelete className="w-3.5 h-3.5" />
-                      
                           </button>
                         </div>
                       </td>

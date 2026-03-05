@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Star, Flame, Sparkles } from "lucide-react";
+import { Star, Flame, Sparkles, Plus, Trash2 } from "lucide-react";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -23,6 +23,13 @@ const AddProduct = () => {
   const [colors, setColors] = useState([]);
   const [quantity, setQuantity] = useState("");
   const [images, setImages] = useState([]);
+
+  // Wholesale fields
+  const [sku, setSku] = useState("");
+  const [minOrderQty, setMinOrderQty] = useState("");
+  const [weight, setWeight] = useState("");
+  const [unit, setUnit] = useState("piece");
+  const [pricingTiers, setPricingTiers] = useState([{ minQty: "", price: "" }]);
 
   const [brandsList, setBrandsList] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
@@ -68,6 +75,12 @@ const AddProduct = () => {
           setTags(p.tags);
           setColors(p.color || []); setQuantity(p.quantity);
           setImages(p.images?.map((img) => ({ url: img.url })) || []);
+          // Wholesale fields
+          setSku(p.sku || "");
+          setMinOrderQty(p.minOrderQty || "");
+          setWeight(p.weight || "");
+          setUnit(p.unit || "piece");
+          setPricingTiers(p.pricing?.length ? p.pricing : [{ minQty: "", price: "" }]);
         } catch (err) {
           toast.error("Failed to fetch product");
         } finally {
@@ -104,6 +117,13 @@ const AddProduct = () => {
     setColors(colors.includes(id) ? colors.filter((c) => c !== id) : [...colors, id]);
   };
 
+  // Pricing tier handlers
+  const addPricingTier = () => setPricingTiers([...pricingTiers, { minQty: "", price: "" }]);
+  const removePricingTier = (index) => setPricingTiers(pricingTiers.filter((_, i) => i !== index));
+  const updatePricingTier = (index, field, value) => {
+    setPricingTiers(pricingTiers.map((tier, i) => i === index ? { ...tier, [field]: value } : tier));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !description || !price || !brand || !category || !tags || !colors.length || !quantity) {
@@ -118,6 +138,8 @@ const AddProduct = () => {
       toast.warn("Please select an item within the subcategory.");
       return;
     }
+    if (!sku) { toast.error("Please enter a SKU"); return; }
+    if (!minOrderQty) { toast.error("Please enter a minimum order quantity"); return; }
     try {
       setLoading(true);
       const formData = new FormData();
@@ -131,6 +153,13 @@ const AddProduct = () => {
       formData.append("slug", title.toLowerCase().replace(/\s+/g, "-"));
       colors.forEach((c) => formData.append("color[]", c));
       images.forEach((img) => { if (img.file) formData.append("images", img.file); });
+      // Wholesale fields
+      formData.append("sku", sku);
+      formData.append("minOrderQty", minOrderQty);
+      if (weight) formData.append("weight", weight);
+      formData.append("unit", unit);
+      const validTiers = pricingTiers.filter((t) => t.minQty !== "" && t.price !== "");
+      if (validTiers.length > 0) formData.append("pricing", JSON.stringify(validTiers));
 
       const headers = { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" };
       if (getProductId) {
@@ -142,6 +171,8 @@ const AddProduct = () => {
         setTitle(""); setDescription(""); setPrice(""); setBrand("");
         setCategory(""); setCategoryId(""); setsubcategory(""); setSubItem("");
         setTags(""); setColors([]); setQuantity(""); setImages([]);
+        setSku(""); setMinOrderQty(""); setWeight(""); setUnit("piece");
+        setPricingTiers([{ minQty: "", price: "" }]);
       }
       navigate("/admin/list-product");
     } catch (err) {
@@ -221,6 +252,11 @@ const AddProduct = () => {
                 <label className={labelClass}>Description <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
                 <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe the product — materials, features, sizing..." rows={4} className={`${inputClass} resize-none leading-relaxed`} />
               </div>
+              {/* SKU */}
+              <div>
+                <label className={labelClass}>SKU <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
+                <input type="text" value={sku} onChange={(e) => setSku(e.target.value)} placeholder="e.g. ABC123" className={inputClass} />
+              </div>
             </div>
           </div>
 
@@ -237,7 +273,7 @@ const AddProduct = () => {
                 <p className="text-xs text-gray-400">Set price and stock quantity</p>
               </div>
             </div>
-            <div className="px-6 py-5">
+            <div className="px-6 py-5 space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className={labelClass}>Price (USD) <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
@@ -254,6 +290,84 @@ const AddProduct = () => {
                     </svg>
                     <input type="number" value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="0" min="0" className={`${inputClass} pl-10`} />
                   </div>
+                </div>
+              </div>
+
+              {/* Min Order Qty + Unit + Weight */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className={labelClass}>Min. Order Qty <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
+                  <input type="number" value={minOrderQty} onChange={(e) => setMinOrderQty(e.target.value)} placeholder="e.g. 50" min="1" className={inputClass} />
+                </div>
+                <div>
+                  <label className={labelClass}>Unit <span className="text-red-400 normal-case tracking-normal font-normal">*</span></label>
+                  <div className="relative">
+                    <select value={unit} onChange={(e) => setUnit(e.target.value)} className={`${inputClass} appearance-none pr-9 cursor-pointer`}>
+                      {["piece", "box", "set", "pack", "pair", "roll", "bag", "carton", "kg", "litre"].map((u) => (
+                        <option key={u} value={u}>{u}</option>
+                      ))}
+                    </select>
+                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>Weight</label>
+                  <input type="text" value={weight} onChange={(e) => setWeight(e.target.value)} placeholder="e.g. 2kg" className={inputClass} />
+                </div>
+              </div>
+
+              {/* Volume Pricing Tiers */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className={`${labelClass} mb-0`}>Volume Pricing Tiers</label>
+                  <button
+                    type="button"
+                    onClick={addPricingTier}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors"
+                  >
+                    <Plus size={12} /> Add Tier
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-[1fr_1fr_auto] gap-3 px-1">
+                    <span className="text-xs text-gray-400 font-medium">Min. Qty</span>
+                    <span className="text-xs text-gray-400 font-medium">Price per Unit (USD)</span>
+                    <span className="w-7"></span>
+                  </div>
+                  {pricingTiers.map((tier, index) => (
+                    <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-3 items-center bg-gray-50 border border-gray-100 rounded-lg px-3 py-2.5">
+                      <input
+                        type="number"
+                        value={tier.minQty}
+                        onChange={(e) => updatePricingTier(index, "minQty", e.target.value)}
+                        placeholder="e.g. 50"
+                        min="1"
+                        className={`${inputClass} bg-white`}
+                      />
+                      <div className="relative">
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">$</span>
+                        <input
+                          type="number"
+                          value={tier.price}
+                          onChange={(e) => updatePricingTier(index, "price", e.target.value)}
+                          placeholder="0.00"
+                          min="0"
+                          step="0.01"
+                          className={`${inputClass} pl-8 bg-white`}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removePricingTier(index)}
+                        disabled={pricingTiers.length === 1}
+                        className="w-7 h-7 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
