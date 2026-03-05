@@ -4,60 +4,65 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+const colorPickerStyles = `
+  .ap-color-picker {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 120px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 0;
+    background: none;
+  }
+  .ap-color-picker::-webkit-color-swatch-wrapper { padding: 0; }
+  .ap-color-picker::-webkit-color-swatch {
+    border: none;
+    border-radius: 12px;
+  }
+  .ap-color-picker::-moz-color-swatch {
+    border: none;
+    border-radius: 12px;
+  }
+`;
+
+const isLight = (hex) => {
+  try {
+    const c = hex.replace("#", "");
+    if (c.length < 6) return true;
+    const r = parseInt(c.slice(0, 2), 16);
+    const g = parseInt(c.slice(2, 4), 16);
+    const b = parseInt(c.slice(4, 6), 16);
+    return (r * 299 + g * 587 + b * 114) / 1000 > 160;
+  } catch { return true; }
+};
+
 const AddColor = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const getColorId = location.pathname.split("/")[3];
-  const [title, setTitle] = useState("");
+
+  const [title, setTitle] = useState("#6366f1");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [colorName, setColorName] = useState("");
 
-  // Fetch color if editing
+  const isEditing = Boolean(getColorId);
+  const token = localStorage.getItem("token");
+
   useEffect(() => {
     if (getColorId) {
       axios
         .get(`http://localhost:5000/api/color/${getColorId}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => setTitle(res.data.title))
         .catch(() => toast.error("Failed to fetch color"));
     }
   }, [getColorId]);
 
-  // Update color name when hex value changes
-  useEffect(() => {
-    if (title) {
-      setColorName(getColorNameFromHex(title));
-    }
-  }, [title]);
-
-  const getColorNameFromHex = (hex) => {
-    const colorMap = {
-      "#FF0000": "Red",
-      "#00FF00": "Green",
-      "#0000FF": "Blue",
-      "#FFFF00": "Yellow",
-      "#FF00FF": "Magenta",
-      "#00FFFF": "Cyan",
-      "#000000": "Black",
-      "#FFFFFF": "White",
-      "#808080": "Gray",
-      "#FFA500": "Orange",
-      "#800080": "Purple",
-      "#FFC0CB": "Pink",
-      "#A52A2A": "Brown",
-      "#FFD700": "Gold",
-      "#006400": "Dark Green",
-    };
-    return colorMap[title.toUpperCase()] || "Custom Color";
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // Basic validation
     if (!title.trim()) {
       setError("Color is required");
       return;
@@ -65,32 +70,15 @@ const AddColor = () => {
     setError("");
     setLoading(true);
     try {
+      const config = { headers: { Authorization: `Bearer ${token}` } };
       if (getColorId) {
-        // Update color
-        await axios.put(
-          `http://localhost:5000/api/color/${getColorId}`,
-          { title },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        await axios.put(`http://localhost:5000/api/color/${getColorId}`, { title }, config);
         toast.success("Color updated successfully!");
         navigate("/admin/list-color");
       } else {
-        // Add new color
-        await axios.post(
-          "http://localhost:5000/api/color",
-          { title },
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        await axios.post("http://localhost:5000/api/color", { title }, config);
         toast.success("Color added successfully!");
-        setTitle(""); // reset form
+        setTitle("#6366f1");
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Something went wrong");
@@ -99,235 +87,169 @@ const AddColor = () => {
     }
   };
 
+  const light = isLight(title);
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
-
-        * {
-          font-family: 'Outfit', sans-serif;
-        }
-
-        .color-input-wrapper {
-          position: relative;
-          display: inline-block;
-          width: 100%;
-        }
-
-        .color-picker-input {
-          appearance: none;
-          -webkit-appearance: none;
-          width: 100%;
-          height: 140px;
-          border: none;
-          border-radius: 16px;
-          cursor: pointer;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .color-picker-input::-webkit-color-swatch-wrapper {
-          padding: 8px;
-        }
-
-        .color-picker-input::-webkit-color-swatch {
-          border: none;
-          border-radius: 12px;
-        }
-
-        .color-picker-input:hover {
-          box-shadow: 0 8px 30px rgba(59, 130, 246, 0.15);
-          transform: translateY(-4px);
-        }
-
-        .color-picker-input:focus {
-          outline: none;
-          box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 8px 30px rgba(59, 130, 246, 0.15);
-        }
-
-        .form-container {
-          animation: slideUp 0.6s ease-out;
-        }
-
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .heading-glow {
-          animation: textGlow 2s ease-in-out infinite;
-        }
-
-        @keyframes textGlow {
-          0%, 100% {
-            text-shadow: 0 0 20px rgba(59, 130, 246, 0.1);
-          }
-          50% {
-            text-shadow: 0 0 40px rgba(59, 130, 246, 0.2);
-          }
-        }
-
-        .submit-button {
-          position: relative;
-          overflow: hidden;
-        }
-
-        .submit-button::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: -100%;
-          width: 100%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-          transition: left 0.5s;
-        }
-
-        .submit-button:hover::before {
-          left: 100%;
-        }
-
-        .error-shake {
-          animation: shake 0.4s ease-in-out;
-        }
-
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-8px); }
-          75% { transform: translateX(8px); }
-        }
-
-        .info-badge {
-          animation: fadeInDown 0.5s ease-out;
-        }
-
-        @keyframes fadeInDown {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .hex-display {
-          font-family: 'JetBrains Mono', monospace;
-          letter-spacing: 0.05em;
-        }
-      `}</style>
-
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
+      <style>{colorPickerStyles}</style>
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <div className="form-container w-full max-w-md">
-        {/* White card */}
-        <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-lg">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <h3 className="heading-glow text-4xl font-bold text-slate-900 mb-2">
-              {getColorId ? "Edit" : "Create"} Color
-            </h3>
-            <p className="text-slate-600 text-sm font-light">
-              {getColorId
-                ? "Update your product color"
-                : "Add a new color to your catalog"}
+      <div className="max-w-xl mx-auto">
+
+        {/* Page Header */}
+        <div className="mb-7 flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <button
+                onClick={() => navigate("/admin/list-color")}
+                className="text-gray-400 hover:text-gray-600 transition-colors text-sm flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Colors
+              </button>
+              <span className="text-gray-300">/</span>
+              <span className="text-sm text-gray-500">{isEditing ? "Edit" : "New"}</span>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              {isEditing ? "Edit Color" : "Add New Color"}
+            </h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {isEditing ? "Update the color value below." : "Pick a color to add to your catalog."}
             </p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Color Picker Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <label
-                  htmlFor="title"
-                  className="text-sm font-semibold text-slate-900 uppercase tracking-wider"
-                >
-                  Select Color
-                </label>
-                {title && (
-                  <div className="info-badge text-xs font-medium px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700">
-                    {colorName}
-                  </div>
-                )}
-              </div>
+          <span className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+            isEditing
+              ? "bg-amber-50 text-amber-600 border border-amber-200"
+              : "bg-indigo-50 text-indigo-600 border border-indigo-200"
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? "bg-amber-400" : "bg-indigo-400"}`}></span>
+            {isEditing ? "Editing" : "New Color"}
+          </span>
+        </div>
 
-              <div className="color-input-wrapper">
+        <form onSubmit={handleSubmit} className="space-y-4">
+
+          {/* Color Picker Card */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-pink-50 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-gray-800">Color Picker</h2>
+                <p className="text-xs text-gray-400">Click the swatch to open the color picker</p>
+              </div>
+            </div>
+
+            <div className="px-6 py-5 space-y-5">
+
+              {/* Large preview + picker */}
+              <div className="relative rounded-xl overflow-hidden border border-gray-200 shadow-sm" style={{ backgroundColor: title }}>
+                {/* Overlay with color info */}
+                <div className={`absolute inset-0 flex flex-col items-center justify-center gap-1 pointer-events-none ${light ? "text-gray-800" : "text-white"}`}>
+                  <span className="text-2xl font-bold font-mono tracking-widest opacity-90">
+                    {title.toUpperCase()}
+                  </span>
+                </div>
+                {/* Invisible full-size color input */}
                 <input
                   type="color"
                   id="title"
-                  value={title || "#3B82F6"}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className={`color-picker-input transition-all ${
-                    error ? "error-shake" : ""
-                  }`}
+                  value={title}
+                  onChange={(e) => { setTitle(e.target.value); setError(""); }}
+                  className="ap-color-picker opacity-0 absolute inset-0 w-full h-full cursor-pointer"
+                  style={{ height: "140px" }}
                 />
+                {/* Visible height spacer */}
+                <div style={{ height: "140px" }} />
               </div>
 
-              {/* Hex Value Display */}
-              {title && (
-                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 text-center">
-                  <p className="text-slate-600 text-xs uppercase tracking-widest mb-1">
-                    Hex Value
-                  </p>
-                  <p className="hex-display text-slate-900 text-lg font-semibold">
-                    {title.toUpperCase()}
-                  </p>
+              {/* Hex input + swatch row */}
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-lg border border-gray-200 shadow-sm flex-shrink-0 cursor-pointer"
+                  style={{ backgroundColor: title }}
+                />
+                <div className="flex-1">
+                  <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                    Hex Value <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      setError("");
+                    }}
+                    placeholder="#000000"
+                    className={`w-full px-3.5 py-2.5 text-sm font-mono text-gray-800 bg-white border rounded-lg outline-none transition-all duration-150 placeholder-gray-400
+                      ${error
+                        ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100"
+                        : "border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                      }`}
+                  />
                 </div>
-              )}
+              </div>
 
-              {/* Error Message */}
+              {/* Error */}
               {error && (
-                <div className="bg-red-50 border border-red-300 rounded-lg p-3 flex items-start gap-3">
-                  <div className="text-red-600 mt-0.5">
-                    <svg
-                      className="w-5 h-5"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                  </div>
-                  <p className="text-red-700 text-sm">{error}</p>
-                </div>
+                <p className="flex items-center gap-1.5 text-red-500 text-xs">
+                  <svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  {error}
+                </p>
               )}
-            </div>
 
-            {/* Submit Button */}
+              {/* Tip */}
+              <p className="text-xs text-gray-400 flex items-center gap-1">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                You can click the preview above or type a hex value directly.
+              </p>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-3 pt-2 pb-6">
+            <button
+              type="button"
+              onClick={() => navigate("/admin/list-color")}
+              className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-150"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={loading}
-              className="submit-button w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 disabled:from-slate-400 disabled:to-slate-300 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-md hover:shadow-lg"
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                  <span>Processing...</span>
-                </div>
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Processing...
+                </>
               ) : (
-                <span>
-                  {getColorId ? "Update" : "Add"} Color
-                </span>
+                <>
+                  {isEditing ? "Update Color" : "Add Color"}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </>
               )}
             </button>
+          </div>
 
-            {/* Helper Text */}
-            <p className="text-center text-xs text-slate-500">
-              Click the color square to open your color picker
-            </p>
-          </form>
-        </div>
+        </form>
       </div>
     </div>
   );

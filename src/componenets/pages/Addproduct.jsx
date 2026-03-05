@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { Star, Flame, Sparkles } from "lucide-react";
 
 const AddProduct = () => {
   const navigate = useNavigate();
@@ -25,20 +26,13 @@ const AddProduct = () => {
   const [colorsList, setColorsList] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch brands, categories, colors
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [brandsRes, categoriesRes, colorsRes] = await Promise.all([
-          axios.get("http://localhost:5000/api/brand", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("http://localhost:5000/api/category", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          axios.get("http://localhost:5000/api/color", {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          axios.get("http://localhost:5000/api/brand", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get("http://localhost:5000/api/category", { headers: { Authorization: `Bearer ${token}` } }),
+          axios.get("http://localhost:5000/api/color", { headers: { Authorization: `Bearer ${token}` } }),
         ]);
         setBrandsList(brandsRes.data);
         setCategoriesList(categoriesRes.data);
@@ -50,25 +44,18 @@ const AddProduct = () => {
     fetchData();
   }, [token]);
 
-  // Fetch product for editing
   useEffect(() => {
     if (getProductId) {
       const fetchProduct = async () => {
         try {
           setLoading(true);
-          const res = await axios.get(
-            `http://localhost:5000/api/product/${getProductId}`,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
+          const res = await axios.get(`http://localhost:5000/api/product/${getProductId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
           const p = res.data;
-          setTitle(p.title);
-          setDescription(p.description);
-          setPrice(p.price);
-          setBrand(p.brand);
-          setCategory(p.category);
-          setTags(p.tags);
-          setColors(p.color || []);
-          setQuantity(p.quantity);
+          setTitle(p.title); setDescription(p.description); setPrice(p.price);
+          setBrand(p.brand); setCategory(p.category); setTags(p.tags);
+          setColors(p.color || []); setQuantity(p.quantity);
           setImages(p.images?.map((img) => ({ url: img.url })) || []);
         } catch (err) {
           toast.error("Failed to fetch product");
@@ -80,150 +67,416 @@ const AddProduct = () => {
     }
   }, [getProductId, token]);
 
-  // Handle file uploads
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     const newImages = files.map((file) => ({ file, url: URL.createObjectURL(file) }));
     setImages([...images, ...newImages]);
   };
 
-  const removeImage = (index) => {
-    setImages(images.filter((_, i) => i !== index));
+  const removeImage = (index) => setImages(images.filter((_, i) => i !== index));
+
+  const toggleColor = (id) => {
+    setColors(colors.includes(id) ? colors.filter((c) => c !== id) : [...colors, id]);
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!title || !description || !price || !brand || !category || !tags || !colors.length || !quantity) {
-      toast.error("Please fill in all fields");
+      toast.error("Please fill in all required fields");
       return;
     }
-
     try {
       setLoading(true);
       const formData = new FormData();
-      formData.append("title", title);
-      formData.append("description", description);
-      formData.append("price", price);
-      formData.append("brand", brand);
-      formData.append("category", category);
-      formData.append("tags", tags);
+      formData.append("title", title); formData.append("description", description);
+      formData.append("price", price); formData.append("brand", brand);
+      formData.append("category", category); formData.append("tags", tags);
       formData.append("quantity", quantity);
       formData.append("slug", title.toLowerCase().replace(/\s+/g, "-"));
-
       colors.forEach((c) => formData.append("color[]", c));
-      images.forEach((img) => {
-        if (img.file) formData.append("images", img.file);
-      });
+      images.forEach((img) => { if (img.file) formData.append("images", img.file); });
 
+      const headers = { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" };
       if (getProductId) {
-        await axios.put(`http://localhost:5000/api/product/${getProductId}`, formData, {
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-        });
+        await axios.put(`http://localhost:5000/api/product/${getProductId}`, formData, { headers });
         toast.success("Product updated successfully!");
       } else {
-        await axios.post("http://localhost:5000/api/product", formData, {
-          headers: { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" },
-        });
+        await axios.post("http://localhost:5000/api/product", formData, { headers });
         toast.success("Product added successfully!");
-        // Reset form
         setTitle(""); setDescription(""); setPrice(""); setBrand("");
         setCategory(""); setTags(""); setColors([]); setQuantity(""); setImages([]);
       }
-
       navigate("/admin/list-product");
     } catch (err) {
-      console.log(err.response?.data || err);
       toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
   };
 
+  const isEditing = Boolean(getProductId);
+
+  const inputClass =
+    "w-full px-3.5 py-2.5 text-sm text-gray-800 bg-white border border-gray-200 rounded-lg outline-none transition-all duration-150 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 placeholder-gray-400";
+
+  const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5";
+
   return (
-    <div className="max-w-4xl mx-auto mt-12 p-6 bg-white shadow-md rounded-lg">
+    <div className="min-h-screen bg-gray-50 py-8 px-4">
       <ToastContainer position="top-right" autoClose={2500} />
-      <h3 className="text-2xl font-semibold mb-6">{getProductId ? "Edit" : "Add"} Product</h3>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Product Title"
-          className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      <div className="max-w-3xl mx-auto">
 
-        <textarea
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Product Description"
-          className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+        {/* Page Header */}
+        <div className="mb-7 flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <button
+                onClick={() => navigate("/admin/list-product")}
+                className="text-gray-400 hover:text-gray-600 transition-colors text-sm flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Products
+              </button>
+              <span className="text-gray-300">/</span>
+              <span className="text-sm text-gray-500">{isEditing ? "Edit" : "New"}</span>
+            </div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              {isEditing ? "Edit Product" : "Add New Product"}
+            </h1>
+            <p className="text-sm text-gray-400 mt-0.5">
+              {isEditing ? "Update the product information below." : "Fill in the details to create a new product listing."}
+            </p>
+          </div>
 
-        <input
-          type="number"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          placeholder="Price"
-          className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+          <span className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
+            isEditing ? "bg-amber-50 text-amber-600 border border-amber-200" : "bg-indigo-50 text-indigo-600 border border-indigo-200"
+          }`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? "bg-amber-400" : "bg-indigo-400"}`}></span>
+            {isEditing ? "Editing" : "New Product"}
+          </span>
+        </div>
 
-        <select value={brand} onChange={(e) => setBrand(e.target.value)} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="">Select Brand</option>
-          {brandsList.map((b) => <option key={b._id} value={b.title}>{b.title}</option>)}
-        </select>
+        <form onSubmit={handleSubmit} className="space-y-4">
 
-        <select value={category} onChange={(e) => setCategory(e.target.value)} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="">Select Category</option>
-          {categoriesList.map((c) => <option key={c._id} value={c.title}>{c.title}</option>)}
-        </select>
+          {/* Basic Info */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-gray-800">Basic Information</h2>
+                <p className="text-xs text-gray-400">Product name and description</p>
+              </div>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div>
+                <label className={labelClass}>
+                  Product Title <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Classic Leather Sneaker"
+                  className={inputClass}
+                />
+              </div>
+              <div>
+                <label className={labelClass}>
+                  Description <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
+                </label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Describe the product — materials, features, sizing..."
+                  rows={4}
+                  className={`${inputClass} resize-none leading-relaxed`}
+                />
+              </div>
+            </div>
+          </div>
 
-        <select value={tags} onChange={(e) => setTags(e.target.value)} className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="">Select Tag</option>
-          <option value="featured">Featured</option>
-          <option value="popular">Popular</option>
-          <option value="special">Special</option>
-        </select>
+          {/* Pricing & Inventory */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-emerald-50 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-gray-800">Pricing & Inventory</h2>
+                <p className="text-xs text-gray-400">Set price and stock quantity</p>
+              </div>
+            </div>
+            <div className="px-6 py-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>
+                    Price (USD) <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm font-medium">$</span>
+                    <input
+                      type="number"
+                      value={price}
+                      onChange={(e) => setPrice(e.target.value)}
+                      placeholder="0.00"
+                      min="0"
+                      step="0.01"
+                      className={`${inputClass} pl-8`}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>
+                    Stock Quantity <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
+                  </label>
+                  <div className="relative">
+                    <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <input
+                      type="number"
+                      value={quantity}
+                      onChange={(e) => setQuantity(e.target.value)}
+                      placeholder="0"
+                      min="0"
+                      className={`${inputClass} pl-10`}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <div className="flex flex-wrap gap-2">
-          {colorsList.map((c) => (
+          {/* Categorization */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-violet-50 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-violet-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-gray-800">Categorization</h2>
+                <p className="text-xs text-gray-400">Brand, category, and tag</p>
+              </div>
+            </div>
+            <div className="px-6 py-5 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className={labelClass}>
+                    Brand <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={brand}
+                      onChange={(e) => setBrand(e.target.value)}
+                      className={`${inputClass} appearance-none pr-9 cursor-pointer`}
+                    >
+                      <option value="">Select brand</option>
+                      {brandsList.map((b) => <option key={b._id} value={b.title}>{b.title}</option>)}
+                    </select>
+                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelClass}>
+                    Category <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
+                  </label>
+                  <div className="relative">
+                    <select
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      className={`${inputClass} appearance-none pr-9 cursor-pointer`}
+                    >
+                      <option value="">Select category</option>
+                      {categoriesList.map((c) => <option key={c._id} value={c.title}>{c.title}</option>)}
+                    </select>
+                    <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label className={labelClass}>
+                  Tag <span className="text-red-400 normal-case tracking-normal font-normal">*</span>
+                </label>
+                <div className="flex flex-wrap gap-2 mt-1">
+                  {[
+                    { value: "featured", label: "Featured", icon: Star },
+                    { value: "popular", label: "Popular", icon: Flame},
+                    { value: "special", label: "Special", icon: Sparkles },
+                  ].map((t) => (
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() => setTags(t.value)}
+                      className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-150 ${
+                        tags === t.value
+                          ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
+                          : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-500"
+                      }`}
+                    >
+                     <t.icon size={16} /> {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Colors */}
+          {colorsList.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-pink-50 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-3.5 h-3.5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-sm font-semibold text-gray-800">
+                    Available Colors
+                    {colors.length > 0 && (
+                      <span className="ml-2 text-xs font-medium text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full">
+                        {colors.length} selected
+                      </span>
+                    )}
+                  </h2>
+                  <p className="text-xs text-gray-400">Click to toggle color variants</p>
+                </div>
+              </div>
+              <div className="px-6 py-5">
+                <div className="flex flex-wrap gap-3">
+                  {colorsList.map((c) => (
+                    <button
+                      type="button"
+                      key={c._id}
+                      onClick={() => toggleColor(c._id)}
+                      title={c.title}
+                      className={`w-9 h-9 rounded-full transition-all duration-150 relative flex-shrink-0 ${
+                        colors.includes(c._id)
+                          ? "ring-2 ring-offset-2 ring-indigo-500 scale-110"
+                          : "ring-1 ring-gray-200 hover:scale-110"
+                      }`}
+                      style={{ backgroundColor: c.title }}
+                    >
+                      {colors.includes(c._id) && (
+                        <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>✓</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Images */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-orange-50 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-sm font-semibold text-gray-800">
+                  Product Images
+                  {images.length > 0 && (
+                    <span className="ml-2 text-xs font-medium text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
+                      {images.length} {images.length === 1 ? "file" : "files"}
+                    </span>
+                  )}
+                </h2>
+                <p className="text-xs text-gray-400">Upload one or more product photos</p>
+              </div>
+            </div>
+            <div className="px-6 py-5">
+              <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer bg-gray-50 hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-150 group">
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center shadow-sm group-hover:border-indigo-200 transition-colors">
+                    <svg className="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-sm font-medium text-gray-600 group-hover:text-indigo-600 transition-colors">
+                      Click to upload or drag & drop
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5">PNG, JPG, WEBP — multiple files supported</p>
+                  </div>
+                </div>
+                <input type="file" multiple accept="image/*" onChange={handleFileChange} className="hidden" />
+              </label>
+
+              {images.length > 0 && (
+                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3 mt-4">
+                  {images.map((img, i) => (
+                    <div key={i} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group shadow-sm">
+                      <img src={img.url} alt={`Product ${i + 1}`} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-opacity-0 group-hover:bg-opacity-30 transition-all duration-150" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(i)}
+                        className="absolute top-1.5 right-1.5 w-6 h-6 bg-white rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-all duration-150 hover:bg-red-500 hover:text-white text-gray-600"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-2 pb-6">
             <button
               type="button"
-              key={c._id}
-              onClick={() => {
-                if (colors.includes(c._id)) setColors(colors.filter((id) => id !== c._id));
-                else setColors([...colors, c._id]);
-              }}
-              style={{ backgroundColor: c.title }}
-              className={`w-6 h-6 rounded-full border-2 border-gray-300 ${colors.includes(c._id) ? "ring-2 ring-blue-500" : ""}`}
-            ></button>
-          ))}
-        </div>
+              onClick={() => navigate("/admin/list-product")}
+              className="px-5 py-2.5 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-all duration-150"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Processing...
+                </>
+              ) : (
+                <>
+                  {isEditing ? "Update Product" : "Add Product"}
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </div>
 
-        <input
-          type="number"
-          value={quantity}
-          onChange={(e) => setQuantity(e.target.value)}
-          placeholder="Quantity"
-          className="px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-
-        <input type="file" multiple onChange={handleFileChange} className="py-2" />
-        <div className="flex flex-wrap gap-2">
-          {images.map((img, i) => (
-            <div key={i} className="relative">
-              <button type="button" onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">×</button>
-              <img src={img.url || img.file} alt="" className="w-24 h-24 object-cover rounded-md" />
-            </div>
-          ))}
-        </div>
-
-        <button type="submit" disabled={loading} className="py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50">
-          {loading ? "Processing..." : getProductId ? "Update Product" : "Add Product"}
-        </button>
-      </form>
+        </form>
+      </div>
     </div>
   );
 };

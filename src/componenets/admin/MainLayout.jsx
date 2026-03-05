@@ -216,11 +216,7 @@ const MainLayout = () => {
                 onClick={() => setOpenUserMenu(!openUserMenu)}
                 className="flex items-center gap-3 px-3 py-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
               >
-                <img
-                  src="https://stroyka-admin.html.themeforest.scompiler.ru/variants/ltr/images/customers/customer-4-64x64.jpg"
-                  alt="User"
-                  className="w-9 h-9 rounded-full border-2 border-red-500"
-                />
+     
                 <div className="text-left hidden sm:block">
                   <p className="text-sm font-semibold text-gray-900">Admin</p>
                   <p className="text-xs text-gray-500">Dashboard</p>
