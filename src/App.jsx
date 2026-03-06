@@ -11,6 +11,7 @@ import BrandList from "./componenets/pages/Brandlist";
 import Addbrand from "./componenets/pages/Addbrand";
 import Addproduct from "./componenets/pages/Addproduct";
 import Productlist from "./componenets/pages/Productlist";
+import OrderList from "./componenets/pages/OrderList";
 function App() {
   return (
     <Routes>
@@ -45,6 +46,7 @@ function App() {
         <Route path="product" element={<Addproduct />} />
         <Route path="product/:id" element={<Addproduct />} />
         <Route path="list-product" element={<Productlist />} />
+        <Route path="list-order" element={<OrderList />} />
 
       </Route>
 
