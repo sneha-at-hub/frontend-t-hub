@@ -18,9 +18,8 @@ const AddProduct = () => {
   const [category, setCategory] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [subcategory, setsubcategory] = useState("");
-  const [subItem, setSubItem] = useState("");
+  const [subitem, setsubitem] = useState("");
   const [tags, setTags] = useState("");
-  const [colors, setColors] = useState([]);
   const [quantity, setQuantity] = useState("");
   const [images, setImages] = useState([]);
 
@@ -33,7 +32,6 @@ const AddProduct = () => {
 
   const [brandsList, setBrandsList] = useState([]);
   const [categoriesList, setCategoriesList] = useState([]);
-  const [colorsList, setColorsList] = useState([]);
   const [loading, setLoading] = useState(false);
 
   // Derived from selected category
@@ -45,14 +43,12 @@ const AddProduct = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [brandsRes, categoriesRes, colorsRes] = await Promise.all([
+        const [brandsRes, categoriesRes] = await Promise.all([
           axios.get("http://localhost:5000/api/brand", { headers: { Authorization: `Bearer ${token}` } }),
           axios.get("http://localhost:5000/api/category", { headers: { Authorization: `Bearer ${token}` } }),
-          axios.get("http://localhost:5000/api/color", { headers: { Authorization: `Bearer ${token}` } }),
         ]);
         setBrandsList(brandsRes.data);
         setCategoriesList(categoriesRes.data);
-        setColorsList(colorsRes.data);
       } catch (err) {
         toast.error("Failed to fetch data");
       }
@@ -71,9 +67,9 @@ const AddProduct = () => {
           const p = res.data;
           setTitle(p.title); setDescription(p.description); setPrice(p.price);
           setBrand(p.brand); setCategory(p.category); setCategoryId(p.categoryId || "");
-          setsubcategory(p.subcategory || ""); setSubItem(p.subItem || "");
+          setsubcategory(p.subcategory || ""); setsubitem(p.subitem || "");
           setTags(p.tags);
-          setColors(p.color || []); setQuantity(p.quantity);
+          setQuantity(p.quantity);
           setImages(p.images?.map((img) => ({ url: img.url })) || []);
           // Wholesale fields
           setSku(p.sku || "");
@@ -97,12 +93,12 @@ const AddProduct = () => {
     setCategoryId(id);
     setCategory(cat?.title || "");
     setsubcategory("");
-    setSubItem("");
+    setsubitem("");
   };
 
   const handleSubChange = (e) => {
     setsubcategory(e.target.value);
-    setSubItem("");
+    setsubitem("");
   };
 
   const handleFileChange = (e) => {
@@ -113,10 +109,6 @@ const AddProduct = () => {
 
   const removeImage = (index) => setImages(images.filter((_, i) => i !== index));
 
-  const toggleColor = (id) => {
-    setColors(colors.includes(id) ? colors.filter((c) => c !== id) : [...colors, id]);
-  };
-
   // Pricing tier handlers
   const addPricingTier = () => setPricingTiers([...pricingTiers, { minQty: "", price: "" }]);
   const removePricingTier = (index) => setPricingTiers(pricingTiers.filter((_, i) => i !== index));
@@ -126,7 +118,7 @@ const AddProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !description || !price || !brand || !category || !tags || !colors.length || !quantity) {
+    if (!title || !description || !price || !brand || !category || !tags || !quantity) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -134,7 +126,7 @@ const AddProduct = () => {
       toast.warn("Please select a subcategory.");
       return;
     }
-    if (itemList.length > 0 && !subItem) {
+    if (itemList.length > 0 && !subitem) {
       toast.warn("Please select an item within the subcategory.");
       return;
     }
@@ -147,11 +139,10 @@ const AddProduct = () => {
       formData.append("price", price); formData.append("brand", brand);
       formData.append("category", category); formData.append("categoryId", categoryId);
       formData.append("subcategory", subcategory);
-      if (subItem) formData.append("subItem", subItem);
+      if (subitem) formData.append("subitem", subitem);
       formData.append("tags", tags);
       formData.append("quantity", quantity);
       formData.append("slug", title.toLowerCase().replace(/\s+/g, "-"));
-      colors.forEach((c) => formData.append("color[]", c));
       images.forEach((img) => { if (img.file) formData.append("images", img.file); });
       // Wholesale fields
       formData.append("sku", sku);
@@ -163,19 +154,48 @@ const AddProduct = () => {
 
       const headers = { Authorization: `Bearer ${token}`, "Content-Type": "multipart/form-data" };
       if (getProductId) {
+        // ─── DEBUG LOG ───────────────────────────────────────────────
+        const validTiersDebug = pricingTiers.filter((t) => t.minQty !== "" && t.price !== "");
+        const debugPayload = {
+          productId: getProductId,
+          title,
+          description,
+          price,
+          brand,
+          category,
+          categoryId,
+          subcategory,
+          subitem,
+          tags,
+          quantity,
+          sku,
+          minOrderQty,
+          weight,
+          unit,
+          pricingTiers: validTiersDebug,
+          existingImages: images.filter((img) => !img.file).map((img) => img.url),
+          newImageFiles: images.filter((img) => img.file).map((img) => img.file.name),
+        };
+        console.log("📦 PUT payload being sent:", debugPayload);
+        console.log("📋 FormData entries:");
+        for (let [key, value] of formData.entries()) {
+          console.log(`  ${key}:`, value);
+        }
+        // ────────────────────────────────────────────────────────────
         await axios.put(`http://localhost:5000/api/product/${getProductId}`, formData, { headers });
         toast.success("Product updated successfully!");
       } else {
         await axios.post("http://localhost:5000/api/product", formData, { headers });
         toast.success("Product added successfully!");
         setTitle(""); setDescription(""); setPrice(""); setBrand("");
-        setCategory(""); setCategoryId(""); setsubcategory(""); setSubItem("");
-        setTags(""); setColors([]); setQuantity(""); setImages([]);
+        setCategory(""); setCategoryId(""); setsubcategory(""); setsubitem("");
+        setTags(""); setQuantity(""); setImages([]);
         setSku(""); setMinOrderQty(""); setWeight(""); setUnit("piece");
         setPricingTiers([{ minQty: "", price: "" }]);
       }
       navigate("/admin/list-product");
     } catch (err) {
+      console.error("❌ PUT error:", err.response?.data || err.message);
       toast.error("Something went wrong");
     } finally {
       setLoading(false);
@@ -448,7 +468,7 @@ const AddProduct = () => {
                   <label className={labelClass}>Item</label>
                   {subcategory && itemList.length > 0 ? (
                     <div className="relative">
-                      <select value={subItem} onChange={(e) => setSubItem(e.target.value)} className={`${inputClass} appearance-none pr-9 cursor-pointer`}>
+                      <select value={subitem} onChange={(e) => setsubitem(e.target.value)} className={`${inputClass} appearance-none pr-9 cursor-pointer`}>
                         <option value="">Select item</option>
                         {itemList.map((item, i) => <option key={i} value={item}>{item}</option>)}
                       </select>
@@ -468,7 +488,7 @@ const AddProduct = () => {
               </div>
 
               {/* Breadcrumb trail */}
-              {(category || subcategory || subItem) && (
+              {(category || subcategory || subitem) && (
                 <div className="flex items-center gap-1.5 px-3 py-2 bg-violet-50 border border-violet-100 rounded-lg flex-wrap">
                   <svg className="w-3.5 h-3.5 text-violet-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
@@ -482,12 +502,12 @@ const AddProduct = () => {
                       <span className="text-xs font-medium text-violet-500">{subcategory}</span>
                     </>
                   )}
-                  {subItem && (
+                  {subitem && (
                     <>
                       <svg className="w-3 h-3 text-violet-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                      <span className="text-xs font-medium text-violet-400">{subItem}</span>
+                      <span className="text-xs font-medium text-violet-400">{subitem}</span>
                     </>
                   )}
                 </div>
@@ -519,52 +539,6 @@ const AddProduct = () => {
               </div>
             </div>
           </div>
-
-          {/* Colors */}
-          {colorsList.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-pink-50 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-3.5 h-3.5 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-                  </svg>
-                </div>
-                <div>
-                  <h2 className="text-sm font-semibold text-gray-800">
-                    Available Colors
-                    {colors.length > 0 && (
-                      <span className="ml-2 text-xs font-medium text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded-full">
-                        {colors.length} selected
-                      </span>
-                    )}
-                  </h2>
-                  <p className="text-xs text-gray-400">Click to toggle color variants</p>
-                </div>
-              </div>
-              <div className="px-6 py-5">
-                <div className="flex flex-wrap gap-3">
-                  {colorsList.map((c) => (
-                    <button
-                      type="button"
-                      key={c._id}
-                      onClick={() => toggleColor(c._id)}
-                      title={c.title}
-                      className={`w-9 h-9 rounded-full transition-all duration-150 relative flex-shrink-0 ${
-                        colors.includes(c._id)
-                          ? "ring-2 ring-offset-2 ring-indigo-500 scale-110"
-                          : "ring-1 ring-gray-200 hover:scale-110"
-                      }`}
-                      style={{ backgroundColor: c.title }}
-                    >
-                      {colors.includes(c._id) && (
-                        <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-bold" style={{ textShadow: "0 1px 2px rgba(0,0,0,0.4)" }}>✓</span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Images */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">

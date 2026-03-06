@@ -247,9 +247,9 @@ const ProductList = () => {
               <table className="w-full">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-100">
-                    {["#", "Product", "SKU", "Brand", "Category", "Subcategory", "Item", "Colors", "Stock", "Min. Order", "Unit", "Weight", "Price", "Pricing Tiers", "Images", "Actions"].map((h) => (
+                    {["#", "Product", "SKU", "Brand", "Category", "Subcategory", "Item", "Stock", "Min. Order", "Unit", "Weight", "Price", "Pricing Tiers", "Images", "Actions"].map((h) => (
                       <th key={h} className={`px-5 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap ${
-                        h === "Actions" || h === "Colors" || h === "Images" ? "text-center" : h === "Price" || h === "Min. Order" ? "text-right" : "text-left"
+                        h === "Actions" || h === "Images" ? "text-center" : h === "Price" || h === "Min. Order" ? "text-right" : "text-left"
                       }`}>
                         {h}
                       </th>
@@ -310,28 +310,16 @@ const ProductList = () => {
 
                       {/* Item */}
                       <td className="px-5 py-4 whitespace-nowrap">
-                        {p.subItem ? (
+                        {p.subitem ? (
                           <span className="inline-flex items-center px-2.5 py-1 rounded-md bg-sky-50 text-xs font-medium text-sky-600">
-                            {p.subItem}
+                            {p.subitem}
                           </span>
                         ) : (
                           <span className="text-xs text-gray-300">—</span>
                         )}
                       </td>
 
-                      {/* Colors */}
-                      <td className="px-5 py-4">
-                        <div className="flex justify-center gap-1.5 flex-wrap">
-                          {p.color?.map((c, i) => (
-                            <div
-                              key={i}
-                              className="w-6 h-6 rounded-full border-2 border-white shadow-sm ring-1 ring-gray-200"
-                              style={{ backgroundColor: c.title || "#000" }}
-                              title={c.title}
-                            />
-                          ))}
-                        </div>
-                      </td>
+
 
                       {/* Stock */}
                       <td className="px-5 py-4 whitespace-nowrap text-center">
