@@ -12,6 +12,9 @@ import Addbrand from "./componenets/pages/Addbrand";
 import Addproduct from "./componenets/pages/Addproduct";
 import Productlist from "./componenets/pages/Productlist";
 import OrderList from "./componenets/pages/OrderList";
+import ListUser from "./componenets/pages/ListUser ";
+import ListSupplier from "./componenets/pages/ListSupplier";
+import Dashboard from "./componenets/pages/Dashboard";
 function App() {
   return (
     <Routes>
@@ -34,6 +37,7 @@ function App() {
           </PrivateRoutes>
         }
       >
+        <Route index element={<Dashboard />} />
         <Route path="list-category" element={<Categorylist />} />
         <Route path="category" element={<Addcat />} />
         <Route path="category/:id" element={<Addcat />} />
@@ -46,7 +50,9 @@ function App() {
         <Route path="product" element={<Addproduct />} />
         <Route path="product/:id" element={<Addproduct />} />
         <Route path="list-product" element={<Productlist />} />
-        <Route path="list-order" element={<OrderList />} />
+        <Route path="orders" element={<OrderList />} />
+        <Route path="customers" element={<ListUser />} />
+        <Route path="suppliers" element={<ListSupplier />} />
 
       </Route>
 

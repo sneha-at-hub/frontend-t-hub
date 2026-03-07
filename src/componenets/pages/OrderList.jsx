@@ -379,12 +379,7 @@ const OrderList = () => {
                                 >
                                   <BiEdit className="w-3.5 h-3.5" />
                                 </button>
-                                <button
-                                  onClick={() => { setDeleteId(order._id); setShowConfirm(true); }}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-500 bg-red-50 hover:bg-red-100 rounded-lg transition-colors duration-150"
-                                >
-                                  <AiFillDelete className="w-3.5 h-3.5" />
-                                </button>
+                     
                               </>
                             )}
                           </div>

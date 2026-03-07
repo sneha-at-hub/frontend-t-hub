@@ -26,6 +26,7 @@ const MainLayout = () => {
   const menuItems = [
     { key: "", icon: AiOutlineDashboard, label: "Dashboard" },
     { key: "customers", icon: AiOutlineUser, label: "Customers" },
+      { key: "suppliers", icon: AiOutlineUser, label: "Suppliers" },
     {
       key: "Catalog",
       icon: AiOutlineShoppingCart,
@@ -42,27 +43,9 @@ const MainLayout = () => {
       ],
     },
     { key: "orders", icon: FaClipboardList, label: "Orders" },
-    {
-      key: "marketing",
-      icon: RiCouponLine,
-      label: "Marketing",
-      children: [
-        { key: "coupon", icon: ImBlog, label: "Add Coupon" },
-        { key: "coupon-list", icon: RiCouponLine, label: "Coupon List" },
-      ],
-    },
-    {
-      key: "blogs",
-      icon: FaBloggerB,
-      label: "Blogs",
-      children: [
-        { key: "blog", icon: ImBlog, label: "Add Blog" },
-        { key: "blog-list", icon: FaBloggerB, label: "Blog List" },
-        { key: "blog-category", icon: ImBlog, label: "Add Blog Category" },
-        { key: "blog-category-list", icon: FaBloggerB, label: "Blog Category List" },
-      ],
-    },
-    { key: "enquiries", icon: FaClipboardList, label: "Enquiries" },
+  
+
+  
     { key: "signout", icon: AiOutlineLogout, label: "Sign Out" },
   ];
 
@@ -196,17 +179,6 @@ const MainLayout = () => {
           </button>
 
           <div className="flex items-center gap-6">
-            {/* Notification Bell */}
-            <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-600 hover:text-gray-900 group">
-              <Bell size={20} />
-              <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
-            </button>
-
-            {/* Settings */}
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200 text-gray-600 hover:text-gray-900">
-              <Settings size={20} />
-            </button>
-
             {/* Divider */}
             <div className="w-px h-6 bg-gray-200"></div>
 
@@ -230,18 +202,7 @@ const MainLayout = () => {
                   <div className="px-4 py-3 border-b border-gray-100">
                     <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Account</p>
                   </div>
-                  <Link
-                    to="/"
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-150 flex items-center gap-2"
-                  >
-                    <span className="text-base">👤</span> View Profile
-                  </Link>
-                  <Link
-                    to="/"
-                    className="block px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors duration-150 flex items-center gap-2"
-                  >
-                    <span className="text-base">⚙️</span> Settings
-                  </Link>
+                
                   <div className="border-t border-gray-100"></div>
                   <button
                     onClick={() => {
