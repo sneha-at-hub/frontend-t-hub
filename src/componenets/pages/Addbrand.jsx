@@ -63,7 +63,7 @@ const AddBrand = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 px-4">
       <ToastContainer position="top-right" autoClose={2500} />
 
       <div className="max-w-xl mx-auto">
@@ -95,9 +95,9 @@ const AddBrand = () => {
           <span className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
             isEditing
               ? "bg-amber-50 text-amber-600 border border-amber-200"
-              : "bg-indigo-50 text-indigo-600 border border-indigo-200"
+              : "bg-red-50 text-red-600 border border-red-200"
           }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? "bg-amber-400" : "bg-indigo-400"}`}></span>
+            <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? "bg-amber-400" : "bg-red-400"}`}></span>
             {isEditing ? "Editing" : "New Brand"}
           </span>
         </div>
@@ -107,8 +107,8 @@ const AddBrand = () => {
           {/* Brand Name Card */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
                 </svg>
               </div>
@@ -128,7 +128,7 @@ const AddBrand = () => {
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Nike, Apple, Samsung..."
-                className="w-full px-3.5 py-2.5 text-sm text-gray-800 bg-white border border-gray-200 rounded-lg outline-none transition-all duration-150 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 placeholder-gray-400"
+                className="w-full px-3.5 py-2.5 text-sm text-gray-800 bg-white border border-gray-200 rounded-lg outline-none transition-all duration-150 focus:border-red-500 focus:ring-2 focus:ring-red-100 placeholder-gray-400"
               />
 
               <p className="text-xs text-gray-400 mt-3 flex items-center gap-1">
@@ -152,7 +152,7 @@ const AddBrand = () => {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

@@ -205,13 +205,13 @@ const AddProduct = () => {
   const isEditing = Boolean(getProductId);
 
   const inputClass =
-    "w-full px-3.5 py-2.5 text-sm text-gray-800 bg-white border border-gray-200 rounded-lg outline-none transition-all duration-150 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 placeholder-gray-400";
+    "w-full px-3.5 py-2.5 text-sm text-gray-800 bg-white border border-gray-200 rounded-lg outline-none transition-all duration-150 focus:border-red-500 focus:ring-2 focus:ring-red-100 placeholder-gray-400";
   const disabledClass =
     "w-full px-3.5 py-2.5 text-sm text-gray-400 bg-gray-50 border border-gray-100 rounded-lg outline-none cursor-not-allowed";
   const labelClass = "block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5";
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 px-4">
       <ToastContainer position="top-right" autoClose={2500} />
 
       <div className="max-w-3xl mx-auto">
@@ -241,9 +241,9 @@ const AddProduct = () => {
           </div>
 
           <span className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
-            isEditing ? "bg-amber-50 text-amber-600 border border-amber-200" : "bg-indigo-50 text-indigo-600 border border-indigo-200"
+            isEditing ? "bg-amber-50 text-amber-600 border border-amber-200" : "bg-red-50 text-red-600 border border-red-200"
           }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? "bg-amber-400" : "bg-indigo-400"}`}></span>
+            <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? "bg-amber-400" : "bg-red-400"}`}></span>
             {isEditing ? "Editing" : "New Product"}
           </span>
         </div>
@@ -253,8 +253,8 @@ const AddProduct = () => {
           {/* Basic Info */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
               </div>
@@ -345,7 +345,7 @@ const AddProduct = () => {
                   <button
                     type="button"
                     onClick={addPricingTier}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-indigo-600 bg-indigo-50 border border-indigo-100 rounded-lg hover:bg-indigo-100 transition-colors"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-red-600 bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors"
                   >
                     <Plus size={12} /> Add Tier
                   </button>
@@ -528,8 +528,8 @@ const AddProduct = () => {
                       onClick={() => setTags(t.value)}
                       className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium border transition-all duration-150 ${
                         tags === t.value
-                          ? "bg-indigo-600 text-white border-indigo-600 shadow-sm"
-                          : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-500"
+                          ? "bg-red-600 text-white border-red-600 shadow-sm"
+                          : "bg-white text-gray-600 border-gray-200 hover:border-red-300 hover:text-red-500"
                       }`}
                     >
                       <t.icon size={16} /> {t.label}
@@ -561,15 +561,15 @@ const AddProduct = () => {
               </div>
             </div>
             <div className="px-6 py-5">
-              <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer bg-gray-50 hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-150 group">
+              <label className="flex flex-col items-center justify-center w-full h-36 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer bg-gray-50 hover:bg-red-50 hover:border-red-300 transition-all duration-150 group">
                 <div className="flex flex-col items-center gap-2">
-                  <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center shadow-sm group-hover:border-indigo-200 transition-colors">
-                    <svg className="w-5 h-5 text-gray-400 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 flex items-center justify-center shadow-sm group-hover:border-red-200 transition-colors">
+                    <svg className="w-5 h-5 text-gray-400 group-hover:text-red-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
                   </div>
                   <div className="text-center">
-                    <p className="text-sm font-medium text-gray-600 group-hover:text-indigo-600 transition-colors">
+                    <p className="text-sm font-medium text-gray-600 group-hover:text-red-600 transition-colors">
                       Click to upload or drag & drop
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">PNG, JPG, WEBP — multiple files supported</p>
@@ -612,7 +612,7 @@ const AddProduct = () => {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

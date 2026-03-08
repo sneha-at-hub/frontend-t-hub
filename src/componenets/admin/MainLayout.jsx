@@ -9,12 +9,11 @@ import {
   AiOutlineBgColors,
   AiOutlineLogout,
 } from "react-icons/ai";
-import { RiCouponLine } from "react-icons/ri";
-import { ImBlog } from "react-icons/im";
+
 import { FaClipboardList, FaBloggerB } from "react-icons/fa";
 import { SiBrandfolder } from "react-icons/si";
 import { BiCategoryAlt } from "react-icons/bi";
-import { ChevronDown, Menu, X, Bell, Settings, LogOut } from "lucide-react";
+import { ChevronDown, Menu, X, User, LogOut } from "lucide-react";
 
 const MainLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
@@ -204,6 +203,16 @@ const MainLayout = () => {
                   </div>
                 
                   <div className="border-t border-gray-100"></div>
+                                    <button
+                    onClick={() => {
+                      navigate("profile");
+                      setOpenUserMenu(false);
+                    }}
+                    className="w-full text-left px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors duration-150 flex items-center gap-2"
+                  >
+                    <User size={16} />
+                    Profile
+                  </button>
                   <button
                     onClick={() => {
                       localStorage.clear();

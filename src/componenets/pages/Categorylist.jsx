@@ -52,7 +52,7 @@ const Categorylist = () => {
   const toggleExpand = (id) => setExpanded(expanded === id ? null : id);
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50  px-4">
       <ToastContainer position="top-right" autoClose={2500} />
 
       <div className="max-w-5xl mx-auto">
@@ -69,7 +69,7 @@ const Categorylist = () => {
 
           <Link
             to="/admin/add-category"
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-all duration-150 shadow-sm self-start sm:self-auto"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-150 shadow-sm self-start sm:self-auto"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />

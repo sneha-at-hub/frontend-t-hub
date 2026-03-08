@@ -155,7 +155,7 @@ const Addcat = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
+    <div className="min-h-screen bg-gray-50 px-4">
       <ToastContainer position="top-right" autoClose={3000} />
 
       <div className="max-w-2xl mx-auto">
@@ -187,9 +187,9 @@ const Addcat = () => {
           <span className={`hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
             isEditing
               ? "bg-amber-50 text-amber-600 border border-amber-200"
-              : "bg-indigo-50 text-indigo-600 border border-indigo-200"
+              : "bg-red-50 text-red-600 border border-red-200"
           }`}>
-            <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? "bg-amber-400" : "bg-indigo-400"}`}></span>
+            <span className={`w-1.5 h-1.5 rounded-full ${isEditing ? "bg-amber-400" : "bg-red-400"}`}></span>
             {isEditing ? "Editing" : "New Category"}
           </span>
         </div>
@@ -199,8 +199,8 @@ const Addcat = () => {
           {/* ── Category Name ── */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                <svg className="w-3.5 h-3.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="w-7 h-7 rounded-lg bg-red-50 flex items-center justify-center flex-shrink-0">
+                <svg className="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
                 </svg>
               </div>
@@ -219,7 +219,7 @@ const Addcat = () => {
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g. Electronics, Men's Footwear..."
                 className={`w-full px-3.5 py-2.5 text-sm text-gray-800 bg-white border rounded-lg outline-none transition-all duration-150 placeholder-gray-400
-                  ${errors.title ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100" : "border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"}`}
+                  ${errors.title ? "border-red-300 focus:border-red-400 focus:ring-2 focus:ring-red-100" : "border-gray-200 focus:border-red-500 focus:ring-2 focus:ring-red-100"}`}
               />
               {errors.title && <p className="flex items-center gap-1.5 text-red-500 text-xs mt-2"><svg className="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>{errors.title}</p>}
             </div>
@@ -402,7 +402,7 @@ const Addcat = () => {
             <button
               type="submit"
               disabled={loading}
-              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 active:bg-indigo-800 transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-red-600 rounded-lg hover:bg-red-700 active:bg-red-800 transition-all duration-150 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <>

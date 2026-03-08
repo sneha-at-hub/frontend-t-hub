@@ -14,6 +14,7 @@ import Productlist from "./componenets/pages/Productlist";
 import OrderList from "./componenets/pages/OrderList";
 import ListUser from "./componenets/pages/ListUser ";
 import ListSupplier from "./componenets/pages/ListSupplier";
+import AdminProfile from "./componenets/pages/AdminProfile";
 import Dashboard from "./componenets/pages/Dashboard";
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
         <Route path="orders" element={<OrderList />} />
         <Route path="customers" element={<ListUser />} />
         <Route path="suppliers" element={<ListSupplier />} />
+        <Route path="profile" element={<AdminProfile />} />
 
       </Route>
 

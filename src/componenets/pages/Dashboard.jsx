@@ -281,7 +281,7 @@ const Dashboard = () => {
                   <XAxis dataKey="month" tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} axisLine={false} tickLine={false} width={52}
                     tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                  <Tooltip content={<CustomTooltip prefix="Rs. " />} cursor={{ fill: "#f3f4f6" }} />
+                  <Tooltip content={<CustomTooltip prefix="$ " />} cursor={{ fill: "#f3f4f6" }} />
                   <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -379,11 +379,11 @@ const Dashboard = () => {
                         </span>
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap text-right">
-                        <span className="text-sm font-semibold text-gray-800">Rs. {fmt(order.totalPrice ?? 0)}</span>
+                        <span className="text-sm font-semibold text-gray-800">$ {fmt(order.totalPrice ?? 0)}</span>
                       </td>
                       <td className="px-5 py-4 whitespace-nowrap text-right">
                         {order.totalPriceAfterDiscount != null ? (
-                          <span className="text-sm font-semibold text-emerald-600">Rs. {fmt(order.totalPriceAfterDiscount)}</span>
+                          <span className="text-sm font-semibold text-emerald-600">$ {fmt(order.totalPriceAfterDiscount)}</span>
                         ) : (
                           <span className="text-xs text-gray-300">—</span>
                         )}
